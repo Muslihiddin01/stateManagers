@@ -47,6 +47,30 @@ class ToDoList {
       console.error(error);
     }
   }
+  async editToDos(updated) {
+    try {
+      await axios.put(this.api, updated);
+      await this.getToDos();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  async addImageToDos(id, form) {
+    try {
+      await axios.post(`${this.api}/${id}/images`, form);
+      await this.getToDos();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  async deleteImageToDos(id) {
+    try {
+      await axios.delete(`${this.api}/images/${id}`);
+      await this.getToDos();
+    } catch (error) {
+      console.error(error);
+    }
+  }
 }
 
 export default new ToDoList();

@@ -41,6 +41,57 @@ const MobX = observer(() => {
     }
   }
 
+  // edit
+  let [inpEditName, setInpEditName] = useState("");
+  let [inpEditDescription, setInpEditDescription] = useState("");
+  let [idx, setIdx] = useState(null);
+
+  const [isModalOpenEdit, setIsModalOpenEdit] = useState(false);
+
+  const handleCancelEdit = () => {
+    setIsModalOpenEdit(false);
+  };
+
+  function openEditDialog(e) {
+    setInpEditName(e.name);
+    setInpEditDescription(e.description);
+    setIdx(e.id);
+    setIsModalOpenEdit(true);
+  }
+
+  async function edit() {
+    let updated = {
+      name: inpEditName,
+      description: inpEditDescription,
+      id: idx,
+    };
+    await todolist.editToDos(updated);
+    setIsModalOpenEdit(false);
+  }
+
+  // addImage
+  const [isModalOpenImage, setIsModalOpenImage] = useState(false);
+
+  const handleCancelImage = () => {
+    setIsModalOpenImage(false);
+  };
+
+  let [inpAddImageInImages, setInpAddImageInImages] = useState(null);
+  let [idImage, setIdImage] = useState(null);
+
+  async function addNewImage(e) {
+    e.preventDefault();
+    let formData = new FormData();
+
+    if (inpAddImageInImages && inpAddImageInImages.length > 0) {
+      inpAddImageInImages.forEach((file) => {
+        formData.append("Images", file);
+      });
+    }
+    await todolist.addImageToDos(idImage, formData);
+    setIsModalOpenImage(false);
+  }
+
   if (todolist.loading) return <p>Loading...</p>;
   if (todolist.error) return <p>Error</p>;
   return (
@@ -84,7 +135,63 @@ const MobX = observer(() => {
           </Button>
         </form>
       </Modal>
-
+      {/* // edit */}
+      <Modal
+        title="Edit"
+        closable={{ "aria-label": "Custom Close Button" }}
+        open={isModalOpenEdit}
+        onOk={handleCancelEdit}
+        onCancel={handleCancelEdit}
+        footer={null}
+      >
+        <article className="flex flex-col gap-3">
+          <input
+            type="text"
+            placeholder="Name..."
+            value={inpEditName}
+            onChange={(e) => setInpEditName(e.target.value)}
+            className="p-2 rounded-lg border-1 border-gray-300 outline-none focus:border-blue-500 hover:border-blue-500 transition-colors delay-75"
+          />
+          <input
+            type="text"
+            placeholder="Description..."
+            value={inpEditDescription}
+            onChange={(e) => setInpEditDescription(e.target.value)}
+            className="p-2 rounded-lg border-1 border-gray-300 outline-none focus:border-blue-500 hover:border-blue-500 transition-colors delay-75"
+          />
+          <Button
+            onClick={edit}
+            type="primary"
+            htmlType="submit"
+            className="mt-4 !py-5"
+          >
+            Submit
+          </Button>
+        </article>
+      </Modal>
+      {/* // addImage  */}
+      <Modal
+        title="Image Modal"
+        closable={{ "aria-label": "Custom Close Button" }}
+        open={isModalOpenImage}
+        onOk={handleCancelImage}
+        onCancel={handleCancelImage}
+        footer={null}
+      >
+        <form onSubmit={addNewImage} className="flex flex-col gap-3">
+          <input
+            type="file"
+            placeholder="Image..."
+            multiple
+            onChange={(e) => setInpAddImageInImages(Array.from(e.target.files))}
+            className="p-2 rounded-lg border-1 border-gray-300 outline-none focus:border-blue-500 hover:border-blue-500 transition-colors delay-75"
+          />
+          <Button type="primary" htmlType="submit" className="mt-3 !py-5">
+            Submit
+          </Button>
+        </form>
+      </Modal>
+      ;
       <section className="grid md:grid-cols-4 gap-5 mt-10">
         {todolist?.data.map((e) => (
           <article
@@ -104,7 +211,10 @@ const MobX = observer(() => {
                     src={`http://37.27.29.18:8001/images/${image.imageName}`}
                     alt={image.id}
                   />
-                  <TiDeleteOutline className="cursor-pointer transition-colors hover:text-red-600 delay-100 text-xl" />
+                  <TiDeleteOutline
+                    onClick={() => todolist.deleteImageToDos(image.id)}
+                    className="cursor-pointer transition-colors hover:text-red-600 delay-100 text-xl"
+                  />
                 </div>
               ))}
             </div>
@@ -113,8 +223,14 @@ const MobX = observer(() => {
                 onClick={() => todolist.deleteToDos(e.id)}
                 className="cursor-pointer transition-colors hover:text-red-600 delay-100 text-xl"
               />
-              <FaPenToSquare className="cursor-pointer transition-colors hover:text-blue-600 delay-100 text-xl" />
-              <FaRegFileImage className="cursor-pointer transition-colors hover:text-green-600 delay-100 text-xl" />
+              <FaPenToSquare
+                onClick={() => openEditDialog(e)}
+                className="cursor-pointer transition-colors hover:text-blue-600 delay-100 text-xl"
+              />
+              <FaRegFileImage
+                onClick={() => (setIsModalOpenImage(true), setIdImage(e.id))}
+                className="cursor-pointer transition-colors hover:text-green-600 delay-100 text-xl"
+              />
             </div>
           </article>
         ))}
